@@ -8,6 +8,7 @@ import android.graphics.RectF;
 
 public class NoteSequence {
     private RectF position;
+
     private int[] pitchSet;
     private int[] sequence;
 

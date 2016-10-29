@@ -1,6 +1,5 @@
 package com.example.android.midiscope;
 
-
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
@@ -9,9 +8,13 @@ import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
 import android.os.AsyncTask;
+
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.util.Pair;
 import android.util.Log;
 
+import com.example.android.logic.NoteInfo;
+import com.example.android.logic.SequenceManager;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -175,12 +178,16 @@ public class ArpongEngine {
 
                     //Get queued notes to turn on and off.
                     for (int i = 0; i< sequences.size(); i++) {
-                        ArpongSequence seq =sequences.get(i);
+                        ArpongSequence seq = sequences.get(i);
                         //turn off previous notes
                         int noteOff = seq.getNextNote();
                         int velOff = seq.getNextVel();
 
                         sendNote(mChannel, noteOff, velOff, false);
+
+                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.PATTERN.LOW, i, sequences.get(i).getOriginalNote());
+                        seq.setNextNote(info.midiNoteNumber);
+                        seq.setNextVelocity(info.velocity);
 
                         sequences.get(i).advance();
                         //turn on next notes

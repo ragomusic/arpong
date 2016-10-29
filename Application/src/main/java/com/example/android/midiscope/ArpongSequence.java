@@ -11,10 +11,8 @@ public class ArpongSequence {
     private static final int  maxStep = 8;
 
     ArpongSequence(int note, int vel) {
-        originalNote  = note;
-        originalVel = vel;
-
-        computeNextNotes();
+        originalNote  = nextNote = note;
+        originalVel = nextVel = vel;
     }
 
     public int getOriginalNote() {
@@ -33,19 +31,19 @@ public class ArpongSequence {
         return nextVel;
     }
 
+    public void setNextNote(int midiNoteNumber) {
+        nextNote = midiNoteNumber;
+    }
+
+    public void setNextVelocity(int velocity) {
+        nextVel = velocity;
+    }
+
     public void advance() {
         currentStep++;
         if (currentStep >= maxStep) {
             currentStep = 0;
         }
-
-       computeNextNotes();
-    }
-
-    private void computeNextNotes() {
-        //compue next notes
-        nextNote = originalNote;
-        nextVel = originalVel;
     }
 
     public int getCurrentStep() {
