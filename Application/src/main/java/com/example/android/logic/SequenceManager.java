@@ -14,11 +14,11 @@ public class SequenceManager {
         HIGH
     }
 
-    private static final int[] PATTERN_LOW_SCALE_DEGREE = { 12, 5, 11, 6, 10, 7, 9, 8 };
+    private static final int[] PATTERN_LOW_SCALE_DEGREE = { 0, 7, 11, 6, 2, 7, 13, 8 };
     private static final int[] PATTERN_LOW_SCALE_VELOCITIES = { 20, 35, 50, 65, 80, 95, 110, 127 };
-    private static final int[] PATTERN_MEDIUM_SCALE_DEGREE = { 8, 7, 10, 3, 14, 5, 9, 7 };
+    private static final int[] PATTERN_MEDIUM_SCALE_DEGREE = { 8, 7, 10, 0, 14, 5, 9, 3 };
     private static final int[] PATTERN_MEDIUM_SCALE_VELOCITIES = { 70, 80, 90, 100, 120, 100, 80, 60 };
-    private static final int[] PATTERN_HIGH_SCALE_DEGREE = { 8, 9, 7, 10, 6, 11, 5, 12 };
+    private static final int[] PATTERN_HIGH_SCALE_DEGREE = { 15, 9, 3, 10, 6, 5, 3, 12 };
     private static final int[] PATTERN_HIGH_SCALE_VELOCITIES = { 127, 110, 95, 80, 65, 50, 35, 20 };
 
     public static NoteInfo getNoteInfoForIndex(PATTERN pattern, int index, int originalNote) {
