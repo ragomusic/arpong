@@ -102,7 +102,7 @@ public class ArpongEngine {
 
 
         protected SequencerTask() {
-            Log.i(TAG,"Started sequencer with tepo:" + getTempo());
+            Log.i(TAG,"Started sequencer with tempo:" + getTempo());
 
         }
 
