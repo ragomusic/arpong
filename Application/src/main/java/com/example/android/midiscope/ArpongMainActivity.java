@@ -124,7 +124,7 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         MidiScope.setScopeLogger(this);
 
 //        ArpongEngine.getInstance().initMidiOutput(getApplicationContext());
-        ArpongEngine.getInstance().setTempo(120);
+        ArpongEngine.getInstance().setTempo(160);
         ArpongEngine.getInstance().start(); //start ArpongEngine
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -370,11 +370,21 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
 
                     String myCommand;
 //                    if (step == 0) {
-//                        myCommand = String.format("reset()");
+//                        myCommand = String.format("javascript:resetsAll()");
 //                        w.loadUrl(myCommand);
 //                    }
 
                     myCommand = String.format("javascript:sequence_active(%d)", step);
+                    w.loadUrl(myCommand);
+                }
+                break;
+                case ArpongEngine.APRONG_EVENT_CLEARALL: {
+                    WebView w = (WebView) findViewById(R.id.web);
+                    w.addJavascriptInterface(new JsInterface(), "AndroidApp");
+                    w.loadUrl("javascript:changeBackgroundColor()");
+
+                    String myCommand;
+                    myCommand = String.format("javascript:resetsAll()");
                     w.loadUrl(myCommand);
                 }
             }

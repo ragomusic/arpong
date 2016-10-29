@@ -34,6 +34,8 @@ public class ArpongEngine {
     public static final int APRONG_EVENT_COLLISION = 3;
     public static final int APRONG_EVENT_STEP = 4;
 
+    public static final int APRONG_EVENT_CLEARALL = 5;
+
     public static final String ARPONG_SQUARE_ON_ID = "id";
     public static final String ARPONG_SQUARE_ON_STEP = "step";
     public static final String ARPONG_SQUARE_ON_DEGREE = "degree";
@@ -154,6 +156,8 @@ public class ArpongEngine {
         private int currentBeat = 0;
         private int maxBeat = 8;
 
+        private int absoluteBeat = 0;
+
         private ArrayList<ArpongSequence> sequences = new ArrayList<ArpongSequence>();
 
 
@@ -182,7 +186,12 @@ public class ArpongEngine {
                         currentBeat = 0; //wrap around
                     }
 
+                    absoluteBeat++;
                     sendStep(currentBeat);
+
+                    if (absoluteBeat % (maxBeat * 3) == 0 ) {
+                        sendClearall();
+                    }
 
                     //Get queued notes to turn on and off.
                     for (int i = 0; i< sequences.size(); i++) {
@@ -268,7 +277,8 @@ public class ArpongEngine {
         if (mContext != null) {
 
             //int degree = note % 16;
-            double velocity = 1.0 * vel / 127.0;
+            double velocity = 0.2 * vel / 127.0;
+            velocity = Math.min(velocity, 0.2);
             Intent intent = new Intent(ARPONG_EVENT);
             if (on) {
                 intent.putExtra(ARPONG_EVENT_TYPE, APRONG_EVENT_SQUARE_ON);
@@ -298,6 +308,15 @@ public class ArpongEngine {
             LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
         }
 
+    }
+
+    public void sendClearall() {
+        if (mContext != null) {
+            Intent intent = new Intent(ARPONG_EVENT);
+            intent.putExtra(ARPONG_EVENT_TYPE, APRONG_EVENT_CLEARALL);
+
+            LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+        }
     }
 
 
