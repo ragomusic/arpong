@@ -13,6 +13,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.util.Pair;
 import android.util.Log;
 
+import com.example.android.logic.HarmoniesManager;
 import com.example.android.logic.NoteInfo;
 import com.example.android.logic.SequenceManager;
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class ArpongEngine {
 
     private boolean mRunning = false;
     private static final Object mRunningLock = new Object();
+    private static int sHarmony = 0;
 
     private SequencerTask mySequencer = null;
 
@@ -191,7 +193,11 @@ public class ArpongEngine {
 
                         sendNote(mChannel, noteOff, velOff, false);
 
-                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.getPattern(seq.getOriginalVel()), currentBeat, sequences.get(i).getOriginalNote(), i);
+                        NoteInfo info = SequenceManager.getNoteInfoForIndex(
+                                SequenceManager.getPattern(seq.getOriginalVel()),
+                                currentBeat,
+                                sequences.get(i).getOriginalNote(),
+                                ArpongEngine.sHarmony);
                         seq.setNextNote(info.midiNoteNumber);
                         seq.setNextVelocity(info.velocity);
 
@@ -230,6 +236,9 @@ public class ArpongEngine {
         public void startNote(int note, int velocity) {
             Log.i(TAG, String.format("Sequencer: noteOn: %d, %d", note, velocity));
             //start new sequence...
+            sHarmony++;
+            sHarmony = sHarmony % 12;
+
             sequences.add( new ArpongSequence(note, velocity));
         }
 
