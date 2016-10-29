@@ -1,9 +1,12 @@
 package com.example.android.midiscope;
 
 
-import android.animation.ObjectAnimator;
 import android.os.AsyncTask;
+import android.support.v4.util.Pair;
 import android.util.Log;
+
+import com.example.android.logic.NoteInfo;
+import com.example.android.logic.SequenceManager;
 
 import java.util.ArrayList;
 
@@ -126,6 +129,8 @@ public class ArpongEngine {
 
                     //Get queued notes to turn on and off.
                     for (int i = 0; i< sequences.size(); i++) {
+
+                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.PATTERN.LOW, i, sequences.get(i).getOriginalNote());
                         int note = sequences.get(i).getNextNote();
                         int vel = sequences.get(i).getNextVel();
                         sequences.get(i).advance();
