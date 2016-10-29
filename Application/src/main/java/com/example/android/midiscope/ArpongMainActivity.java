@@ -350,8 +350,8 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
                     w.loadUrl(myCommand);
 
 
-                    myCommand = String.format("javascript:sequence_active(%d)", step);
-                    w.loadUrl(myCommand);
+//                    myCommand = String.format("javascript:sequence_active(%d)", step);
+//                    w.loadUrl(myCommand);
 
                     //funky
                     if ((degree + step) % 7 == 0) {
@@ -361,6 +361,22 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
 
                 }
                 break;
+                case ArpongEngine.APRONG_EVENT_STEP: {
+                    int step = intent.getIntExtra(ArpongEngine.ARPONG_SQUARE_ON_STEP, -1);
+
+                    WebView w = (WebView) findViewById(R.id.web);
+                    w.addJavascriptInterface(new JsInterface(), "AndroidApp");
+                    w.loadUrl("javascript:changeBackgroundColor()");
+
+                    String myCommand;
+//                    if (step == 0) {
+//                        myCommand = String.format("reset()");
+//                        w.loadUrl(myCommand);
+//                    }
+
+                    myCommand = String.format("javascript:sequence_active(%d)", step);
+                    w.loadUrl(myCommand);
+                }
             }
         }
     };
