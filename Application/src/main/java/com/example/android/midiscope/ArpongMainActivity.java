@@ -7,6 +7,7 @@ import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,7 +20,9 @@ import com.example.android.common.midi.MidiFramer;
 import com.example.android.common.midi.MidiOutputPortSelector;
 import com.example.android.common.midi.MidiPortWrapper;
 
+import java.io.IOException;
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
 public class ArpongMainActivity extends Activity implements ScopeLogger {
 
@@ -48,10 +51,11 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         MidiManager midiManager = (MidiManager) getSystemService(MIDI_SERVICE);
 
         // Receiver that prints the messages.
-        MidiReceiver loggingReceiver = new LoggingReceiver(this);
+        //MidiReceiver loggingReceiver = new LoggingReceiver(this);
+        MidiReceiver myReceiver = new ArpongMidiReceiver(this);
 
         // Receiver that parses raw data into complete messages.
-        MidiFramer connectFramer = new MidiFramer(loggingReceiver);
+        MidiFramer connectFramer = new MidiFramer(myReceiver);
 
         // Setup a menu to select an input source.
         mLogSenderSelector = new MidiOutputPortSelector(midiManager, this, R.id.spinner_senders) {
@@ -73,6 +77,9 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
 
         // Tell the virtual device to log its messages here..
         MidiScope.setScopeLogger(this);
+
+        ArpongEngine.getInstance().setTempo(120);
+        ArpongEngine.getInstance().start(); //start ArpongEngine
     }
 
     @Override
@@ -140,6 +147,52 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         }
         mLog.setText(sb.toString());
         mScroller.fullScroll(View.FOCUS_DOWN);
+    }
+
+    private class ArpongMidiReceiver extends MidiReceiver {
+        public static final String TAG = "ArpongMidiReceiver";
+        private final long NANOS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
+        private long mStartTime;
+        private ScopeLogger mLogger;
+
+        public ArpongMidiReceiver(ScopeLogger logger) {
+            mStartTime = System.nanoTime();
+            mLogger = logger;
+        }
+
+        /*
+         * @see android.media.midi.MidiReceiver#onReceive(byte[], int, int, long)
+         */
+        @Override
+        public void onSend(byte[] data, int offset, int count, long timestamp)
+                throws IOException {
+            StringBuilder sb = new StringBuilder();
+            if (timestamp == 0) {
+                sb.append(String.format("-----0----: "));
+            } else {
+                long monoTime = timestamp - mStartTime;
+                double seconds = (double) monoTime / NANOS_PER_SECOND;
+                sb.append(String.format("%10.3f: ", seconds));
+            }
+
+
+            {
+                if (count - offset >=2) {
+                    Log.i(TAG,String.format("22rago: event: %02X  offset: %d count %d", data[offset], offset, count));
+                    if ((data[offset] & 0xF0)== 0x90 ) {
+                        Log.i(TAG, String.format("22rago: note on: %02X ", data[offset]));
+
+                    }
+                }
+            }
+
+            sb.append(MidiPrinter.formatBytes(data, offset, count));
+            sb.append(": ");
+            sb.append(MidiPrinter.formatMessage(data, offset, count));
+            String text = sb.toString();
+            mLogger.log(text);
+            Log.i(TAG, text);
+        }
     }
 
 }

@@ -51,6 +51,20 @@ public class LoggingReceiver extends MidiReceiver {
             double seconds = (double) monoTime / NANOS_PER_SECOND;
             sb.append(String.format("%10.3f: ", seconds));
         }
+
+        {
+            if (count - offset >=2) {
+                Log.i(TAG,String.format("rago: event: %02X  offset: %d count %d", data[offset], offset, count));
+                if ((data[offset] & 0xF0)== 0x90 ) {
+                    Log.i(TAG, String.format("rago: note on: %02X ", data[offset]));
+
+                    ArpongEngine.getInstance().startNote(data[offset+1], data[offset+2]);
+                } else if ((data[offset] & 0xF0)== 0x80 ) {
+                    ArpongEngine.getInstance().stopNote(data[offset+1], data[offset+2]);
+                }
+            }
+        }
+
         sb.append(MidiPrinter.formatBytes(data, offset, count));
         sb.append(": ");
         sb.append(MidiPrinter.formatMessage(data, offset, count));
