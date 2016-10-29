@@ -26,9 +26,12 @@ public class SequenceManager {
         int[] velocitiesArray;
         switch (pattern) {
             case LOW:
-            case MEDIUM:
                 degreeArray = PATTERN_LOW_SCALE_DEGREE;
                 velocitiesArray = PATTERN_LOW_SCALE_VELOCITIES;
+                break;
+            case MEDIUM:
+                degreeArray = PATTERN_MEDIUM_SCALE_DEGREE;
+                velocitiesArray = PATTERN_MEDIUM_SCALE_VELOCITIES;
                 break;
             case HIGH:
             default:
@@ -40,5 +43,17 @@ public class SequenceManager {
         return new NoteInfo(degreeArray[index],
                 velocitiesArray[index],
                 HarmoniesManager.getMidiNoteNumber(HarmoniesManager.getInitialHarmony(), degreeArray[index], originalNote));
+    }
+
+    public static PATTERN getPattern(int velocity) {
+        if (velocity <= 43) {
+            return PATTERN.LOW;
+        }
+
+        if (velocity <= 86) {
+            return PATTERN.MEDIUM;
+        }
+
+        return PATTERN.HIGH;
     }
 }
