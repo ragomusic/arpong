@@ -34,11 +34,11 @@
 
     </Toolbar>
 
+
     <ScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
-        android:layout_height="0px"
-        android:layout_weight="1">
+        android:layout_height="98dp">
 
         <TextView
             android:id="@+id/log"
@@ -51,4 +51,11 @@
             android:textAppearance="?android:attr/textAppearanceMedium"/>
 
     </ScrollView>
+
+    <WebView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/web">
+    </WebView>
+
 </LinearLayout>

@@ -3,24 +3,41 @@ package com.example.android.midiscope;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toolbar;
+import android.webkit.JavascriptInterface;
+
 
 import com.example.android.common.midi.MidiFramer;
 import com.example.android.common.midi.MidiInputPortSelector;
 import com.example.android.common.midi.MidiOutputPortSelector;
 import com.example.android.common.midi.MidiPortWrapper;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -34,7 +51,13 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
     private TextView mLog;
     private ScrollView mScroller;
     private MidiOutputPortSelector mLogSenderSelector;
+
     private MidiInputPortSelector mLogReceiverSelector;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -104,7 +127,39 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
 //        ArpongEngine.getInstance().initMidiOutput(getApplicationContext());
         ArpongEngine.getInstance().setTempo(120);
         ArpongEngine.getInstance().start(); //start ArpongEngine
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+        // This part adds the webview created by Toshi.
+        WebView w = (WebView) findViewById(R.id.web);
+        Uri uri = Uri.parse("http://sainome.com/arpong_webview/src/index2.html");
+        w.getSettings().setJavaScriptEnabled(true);
+        w.getSettings().setLoadWithOverviewMode(true);
+        w.getSettings().setUseWideViewPort(true);
+        w.getSettings().setBuiltInZoomControls(true);
+        w.getSettings().setDisplayZoomControls(false);
+        w.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        w.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+
+        w.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        w.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
+        w.loadUrl("http://sainome.com/arpong_webview/src/index2.html");
+        w.addJavascriptInterface(new JsInterface(), "AndroidApp");
+        w.loadUrl("javascript:changeBackgroundColor()");
+
     }
+
+    public class JsInterface {
+        @JavascriptInterface
+        void receiveString(String value) {
+            // String received from WebView
+            Log.d("MyApp", value);
+        }
+    }
+
+
 
     @Override
     public void onDestroy() {
@@ -219,4 +274,39 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         }
     }
 
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("ArpongMain Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
+    }
 }
