@@ -34,6 +34,10 @@ public class HarmoniesManager {
     private static final int[] HARMONY_TEN = {0, 2, 5, 7, 10, 12, 14, 17, 19, 22, 24, 26, 29, 31, 34, 36, 38, 41, 43, 46, 48, 50, 53, 55, 58, 60, 62, 65, 67, 70, 72, 74, 77, 79, 82, 84, 86, 89, 91, 94, 96, 98, 101, 103, 106, 108, 110, 113, 115, 118, 120, 122, 125, 127};
     private static final int[] HARMONY_ELEVEN = {0, 2, 5, 7, 9, 12, 14, 17, 19, 21, 24, 26, 29, 31, 33, 36, 38, 41, 43, 45, 48, 50, 53, 55, 57, 60, 62, 65, 67, 69, 72, 74, 77, 79, 81, 84, 86, 89, 91, 93, 96, 98, 101, 103, 105, 108, 110, 113, 115, 117, 120, 122, 125, 127};
 
+    public static HARMONY getHarmonyFromIndex(int index) {
+        return HARMONY.values()[index];
+    }
+
     public static int getMidiNoteNumber(HARMONY harmony, int degree, int noteValue) {
         return getPitchSet(harmony, noteValue)[degree];
     }

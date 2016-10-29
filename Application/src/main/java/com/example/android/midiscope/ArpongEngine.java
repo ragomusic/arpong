@@ -191,8 +191,7 @@ public class ArpongEngine {
 
                         sendNote(mChannel, noteOff, velOff, false);
 
-
-                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.getPattern(seq.getOriginalVel()), currentBeat, sequences.get(i).getOriginalNote());
+                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.getPattern(seq.getOriginalVel()), currentBeat, sequences.get(i).getOriginalNote(), i);
                         seq.setNextNote(info.midiNoteNumber);
                         seq.setNextVelocity(info.velocity);
 

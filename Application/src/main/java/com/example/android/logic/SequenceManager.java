@@ -21,7 +21,7 @@ public class SequenceManager {
     private static final int[] PATTERN_HIGH_SCALE_DEGREE = { 15, 9, 3, 10, 6, 5, 3, 12 };
     private static final int[] PATTERN_HIGH_SCALE_VELOCITIES = { 127, 110, 95, 80, 65, 50, 35, 20 };
 
-    public static NoteInfo getNoteInfoForIndex(PATTERN pattern, int index, int originalNote) {
+    public static NoteInfo getNoteInfoForIndex(PATTERN pattern, int index, int originalNote, int harmony) {
         int[] degreeArray;
         int[] velocitiesArray;
         switch (pattern) {
@@ -42,7 +42,7 @@ public class SequenceManager {
 
         return new NoteInfo(degreeArray[index],
                 velocitiesArray[index],
-                HarmoniesManager.getMidiNoteNumber(HarmoniesManager.getInitialHarmony(), degreeArray[index], originalNote));
+                HarmoniesManager.getMidiNoteNumber(HarmoniesManager.getHarmonyFromIndex(harmony), degreeArray[index], originalNote));
     }
 
     public static PATTERN getPattern(int velocity) {
