@@ -353,6 +353,12 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
                     myCommand = String.format("javascript:sequence_active(%d)", step);
                     w.loadUrl(myCommand);
 
+                    //funky
+                    if ((degree + step) % 7 == 0) {
+                        myCommand = String.format("javascript:matrix[%d][%d].bang_collision(%f)",degree, step, velocity);
+                        w.loadUrl(myCommand);
+                    }
+
                 }
                 break;
             }

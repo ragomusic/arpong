@@ -189,15 +189,15 @@ public class ArpongEngine {
                         seq.setNextNote(info.midiNoteNumber);
                         seq.setNextVelocity(info.velocity);
 
+                        int degree = info.degree;
+
                         sequences.get(i).advance();
                         //turn on next notes
                         int noteOn = seq.getNextNote();
                         int velOn = seq.getNextVel();
                         sendNote(mChannel, noteOn, velOn, true);
 
-                        sendEventNoteOn(i, currentBeat, noteOn, velOn);
-                        //Info for the ui
-                        int degree = noteOn % 16;
+                        sendEventNoteOn(i, currentBeat, degree, velOn);
 
                         Log.i(TAG, String.format(" sequence: %d  play: (%d, %d)",i, noteOn, velOn));
                     }
@@ -247,18 +247,13 @@ public class ArpongEngine {
 
     }
 
-    public void sendEventNoteOn(int id, int step, int note, int vel) {
-
-//        ARPONG_SQUARE_ON_ID = "id";
-//        public static final String ARPONG_SQUARE_ON_STEP = "step";
-//        public static final String ARPONG_SQUARE_ON_DEGREE = "degree";
-//        public static final String ARPONG_SQUARE_ON_VEL = "vel";
+    public void sendEventNoteOn(int id, int step, int degree, int vel) {
 
         Log.i(TAG, "sendEventNoteOn");
         if (mContext != null) {
 
-            int degree = note % 16;
-            double velocity = 2.0 * vel / 127.0;
+            //int degree = note % 16;
+            double velocity = 1.0 * vel / 127.0;
             Intent intent = new Intent(ARPONG_EVENT);
             intent.putExtra(ARPONG_EVENT_TYPE, APRONG_EVENT_SQUARE_ON);
             intent.putExtra(ARPONG_SQUARE_ON_ID, id);
