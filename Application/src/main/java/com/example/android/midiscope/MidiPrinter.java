@@ -61,6 +61,7 @@ public class MidiPrinter {
 
     public static String formatBytes(byte[] data, int offset, int count) {
         StringBuilder sb = new StringBuilder();
+        //sb.append("rago ");
         for (int i = 0; i < count; i++) {
             sb.append(String.format(" %02X", data[offset + i]));
         }

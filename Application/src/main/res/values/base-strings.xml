@@ -16,15 +16,14 @@
 -->
 
 <resources>
-    <string name="app_name">MidiScope</string>
+    <string name="app_name">ArPong</string>
     <string name="intro_message">
         <![CDATA[
-        
-            
-This sample demonstrates how to use the MIDI API to receive and process MIDI signals coming from an
-attached input device.
-            
-        
+
+
+The coolest MIDI Arpeggiator-Pong app in the west
+
+
         ]]>
     </string>
 </resources>
