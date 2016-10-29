@@ -19,6 +19,9 @@
     <string name="clear_log">Clear Log</string>
     <string name="keep_screen_on">Keep Screen On</string>
     <string-array name="senders">
-        <item>"none"</item>
+        <item>"none Input"</item>
+    </string-array>
+    <string-array name="receivers">
+        <item>"none Output"</item>
     </string-array>
 </resources>

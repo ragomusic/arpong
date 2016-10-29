@@ -3,28 +3,48 @@ package com.example.android.midiscope;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.midi.MidiDeviceInfo;
+import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toolbar;
+import android.webkit.JavascriptInterface;
+
 
 import com.example.android.common.midi.MidiFramer;
+import com.example.android.common.midi.MidiInputPortSelector;
 import com.example.android.common.midi.MidiOutputPortSelector;
 import com.example.android.common.midi.MidiPortWrapper;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 
 public class ArpongMainActivity extends Activity implements ScopeLogger {
+    public static final String TAG = "ArpongMainActivity";
 
     private static final int MAX_LINES = 100;
 
@@ -32,6 +52,13 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
     private TextView mLog;
     private ScrollView mScroller;
     private MidiOutputPortSelector mLogSenderSelector;
+
+    private MidiInputPortSelector mLogReceiverSelector;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,14 +75,14 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         mScroller = (ScrollView) findViewById(R.id.scroll);
 
         // Setup MIDI
-        MidiManager midiManager = (MidiManager) getSystemService(MIDI_SERVICE);
+        final MidiManager midiManager = (MidiManager) getSystemService(MIDI_SERVICE);
 
         // Receiver that prints the messages.
-        //MidiReceiver loggingReceiver = new LoggingReceiver(this);
-        MidiReceiver myReceiver = new ArpongMidiReceiver(this);
+        MidiReceiver loggingReceiver = new LoggingReceiver(this);
+        //MidiReceiver myReceiver = new ArpongMidiReceiver(this);
 
         // Receiver that parses raw data into complete messages.
-        MidiFramer connectFramer = new MidiFramer(myReceiver);
+        MidiFramer connectFramer = new MidiFramer(loggingReceiver);
 
         // Setup a menu to select an input source.
         mLogSenderSelector = new MidiOutputPortSelector(midiManager, this, R.id.spinner_senders) {
@@ -75,16 +102,91 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         };
         mLogSenderSelector.getSender().connect(connectFramer);
 
+        mLogReceiverSelector = new MidiInputPortSelector(midiManager, this, R.id.spinner_receivers);
+
+        MidiReceiver proxyReceiver = new MidiReceiver() {
+            @Override
+            public void onSend(byte[] bytes, int i, int i1, long l) throws IOException {
+                MidiReceiver r = mLogReceiverSelector.getReceiver();
+                if (r != null) {
+                    r.send(bytes, i , i1, l);
+                }
+            }
+        };
+
+        ArpongEngine.getInstance().initMidiInput(proxyReceiver);
+//        {
+//            @Override
+//            public void onPortSelected(final MidiPortWrapper wrapper) {
+//                super.onPortSelected(wrapper);
+//                if (wrapper != null) {
+//                    mLogLines.clear();
+//                    MidiDeviceInfo deviceInfo = wrapper.getDeviceInfo();
+//                    if (deviceInfo == null) {
+//                        log(getString(R.string.header_text));
+//                    } else {
+//                        log(MidiPrinter.formatDeviceInfo(deviceInfo));
+//                    }
+//
+//                    int index = wrapper.getPortIndex();
+//                    Log.i(TAG, "input port selected index: " + index);
+////                    wrapper.getDeviceInfo()
+////
+////                    MidiInputPort inputPort = device.openInputPort(index);
+//                    MidiReceiver midiReceiver = mLogReceiverSelector.getReceiver();
+//                    Log.i(TAG, " receiver: " + midiReceiver);
+//
+//                    MidiInputPort input = (MidiInputPort) mLogReceiverSelector.getReceiver();  //input port!!
+//                    ArpongEngine.getInstance().initMidiInput(input);
+//                }
+//            }
+//        };
+
+
         // Tell the virtual device to log its messages here..
         MidiScope.setScopeLogger(this);
 
+//        ArpongEngine.getInstance().initMidiOutput(getApplicationContext());
         ArpongEngine.getInstance().setTempo(120);
         ArpongEngine.getInstance().start(); //start ArpongEngine
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+        // This part adds the webview created by Toshi.
+        WebView w = (WebView) findViewById(R.id.web);
+        Uri uri = Uri.parse("http://sainome.com/arpong_webview/src/index2.html");
+        w.getSettings().setJavaScriptEnabled(true);
+        w.getSettings().setLoadWithOverviewMode(true);
+        w.getSettings().setUseWideViewPort(true);
+        w.getSettings().setBuiltInZoomControls(true);
+        w.getSettings().setDisplayZoomControls(false);
+        w.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        w.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+
+        w.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        w.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
+        w.loadUrl("http://sainome.com/arpong_webview/src/index2.html");
+        w.addJavascriptInterface(new JsInterface(), "AndroidApp");
+        w.loadUrl("javascript:changeBackgroundColor()");
+
     }
+
+    public class JsInterface {
+        @JavascriptInterface
+        void receiveString(String value) {
+            // String received from WebView
+            Log.d("MyApp", value);
+        }
+    }
+
+
 
     @Override
     public void onDestroy() {
         mLogSenderSelector.onClose();
+        mLogReceiverSelector.onClose();
         // The scope will live on as a service so we need to tell it to stop
         // writing log messages to this Activity.
         MidiScope.setScopeLogger(null);
@@ -195,4 +297,39 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         }
     }
 
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("ArpongMain Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
+    }
 }
