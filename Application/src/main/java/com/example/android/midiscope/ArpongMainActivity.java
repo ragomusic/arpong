@@ -3,7 +3,10 @@ package com.example.android.midiscope;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,6 +17,7 @@ import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -114,34 +118,7 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
             }
         };
 
-        ArpongEngine.getInstance().initMidiInput(proxyReceiver);
-//        {
-//            @Override
-//            public void onPortSelected(final MidiPortWrapper wrapper) {
-//                super.onPortSelected(wrapper);
-//                if (wrapper != null) {
-//                    mLogLines.clear();
-//                    MidiDeviceInfo deviceInfo = wrapper.getDeviceInfo();
-//                    if (deviceInfo == null) {
-//                        log(getString(R.string.header_text));
-//                    } else {
-//                        log(MidiPrinter.formatDeviceInfo(deviceInfo));
-//                    }
-//
-//                    int index = wrapper.getPortIndex();
-//                    Log.i(TAG, "input port selected index: " + index);
-////                    wrapper.getDeviceInfo()
-////
-////                    MidiInputPort inputPort = device.openInputPort(index);
-//                    MidiReceiver midiReceiver = mLogReceiverSelector.getReceiver();
-//                    Log.i(TAG, " receiver: " + midiReceiver);
-//
-//                    MidiInputPort input = (MidiInputPort) mLogReceiverSelector.getReceiver();  //input port!!
-//                    ArpongEngine.getInstance().initMidiInput(input);
-//                }
-//            }
-//        };
-
+        ArpongEngine.getInstance().initMidiInput(this, proxyReceiver);
 
         // Tell the virtual device to log its messages here..
         MidiScope.setScopeLogger(this);
@@ -167,10 +144,11 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         w.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         w.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-        w.loadUrl("http://sainome.com/arpong_webview/src/index2.html");
+        w.loadUrl("http://sainome.com/arpong_webview/src/index_noseq.html");
         w.addJavascriptInterface(new JsInterface(), "AndroidApp");
         w.loadUrl("javascript:changeBackgroundColor()");
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBReceiver, new IntentFilter(ArpongEngine.ARPONG_EVENT));
     }
 
     public class JsInterface {
@@ -321,15 +299,75 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client.connect();
         AppIndex.AppIndexApi.start(client, getIndexApiAction());
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBReceiver, new IntentFilter(ArpongEngine.ARPONG_EVENT));
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBReceiver);
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
         client.disconnect();
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBReceiver, new IntentFilter(ArpongEngine.ARPONG_EVENT));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBReceiver);
+    }
+
+    private BroadcastReceiver mBReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int type = intent.getIntExtra(ArpongEngine.ARPONG_EVENT_TYPE, -1);
+            Log.i(TAG, "GOT INTENT .. type: " + type + " message " + intent.toString());
+
+            switch(type) {
+                case ArpongEngine.APRONG_EVENT_SQUARE_ON: {
+                    Log.i(TAG, "got sq on intent!");
+
+                    int id = intent.getIntExtra(ArpongEngine.ARPONG_SQUARE_ON_ID, -1);
+                    int degree = intent.getIntExtra(ArpongEngine.ARPONG_SQUARE_ON_DEGREE, -1);
+                    int step = intent.getIntExtra(ArpongEngine.ARPONG_SQUARE_ON_STEP, -1);
+                    double velocity = intent.getDoubleExtra(ArpongEngine.ARPONG_SQUARE_ON_VEL, 0.1);
+
+
+                    String myCommand = String.format("javascript:matrix[%d][%d].bang(%f)",degree, step, velocity);
+                    WebView w = (WebView) findViewById(R.id.web);
+                    w.addJavascriptInterface(new JsInterface(), "AndroidApp");
+                    w.loadUrl("javascript:changeBackgroundColor()");
+                    //w.loadUrl("javascript:matrix[5][5].bang(2)");
+                    w.loadUrl(myCommand);
+
+
+                    myCommand = String.format("javascript:sequence_active(%d)", step);
+                    w.loadUrl(myCommand);
+
+                }
+                break;
+            }
+        }
+    };
+
+    public void send(View view){
+        WebView w = (WebView) findViewById(R.id.web);
+        w.addJavascriptInterface(new JsInterface(), "AndroidApp");
+        w.loadUrl("javascript:changeBackgroundColor()");
+        //w.loadUrl("javascript:reset()");
+
+        w.loadUrl("javascript:matrix[5][5].bang(2)");
+
+
+    }
+
 }

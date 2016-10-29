@@ -3,11 +3,13 @@ package com.example.android.midiscope;
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.IOException;
@@ -21,6 +23,16 @@ public class ArpongEngine {
         return ourInstance;
     }
 
+    public static final String ARPONG_EVENT = "ArpongEvent";
+    public static final String ARPONG_EVENT_TYPE = "ArpongEventType";
+    public static final int APRONG_EVENT_SQUARE_ON = 1;
+    public static final int APRONG_EVENT_COLLISION = 2;
+
+    public static final String ARPONG_SQUARE_ON_ID = "id";
+    public static final String ARPONG_SQUARE_ON_STEP = "step";
+    public static final String ARPONG_SQUARE_ON_DEGREE = "degree";
+    public static final String ARPONG_SQUARE_ON_VEL = "vel";
+
     private int mChannel = 5;
     private float mTempo = 120;
     private float msPerBeat = 500;
@@ -32,12 +44,12 @@ public class ArpongEngine {
     private SequencerTask mySequencer = null;
 
     Context mContext = null;
-    MidiManager mMidiManager = null;
     MidiReceiver mMidiReceiver = null;
 
     private ArpongEngine() {
     }
-    public void initMidiInput(MidiReceiver midiReceiver) {
+    public void initMidiInput(Context context, MidiReceiver midiReceiver) {
+        mContext = context;
         mMidiReceiver = midiReceiver;
         Log.i(TAG, "mMidiReceiver done " + mMidiReceiver);
     }
@@ -176,6 +188,11 @@ public class ArpongEngine {
                         int velOn = seq.getNextVel();
                         sendNote(mChannel, noteOn, velOn, true);
 
+                        sendEventNoteOn(i, currentBeat, noteOn, velOn);
+                        //Info for the ui
+                        int degree = noteOn % 16;
+
+
 
                         //Log.i(TAG, String.format(" sequence: %d  play: (%d, %d)",i, note, vel));
                     }
@@ -225,4 +242,28 @@ public class ArpongEngine {
 
     }
 
+    public void sendEventNoteOn(int id, int step, int note, int vel) {
+
+//        ARPONG_SQUARE_ON_ID = "id";
+//        public static final String ARPONG_SQUARE_ON_STEP = "step";
+//        public static final String ARPONG_SQUARE_ON_DEGREE = "degree";
+//        public static final String ARPONG_SQUARE_ON_VEL = "vel";
+
+        Log.i(TAG, "sendEventNoteOn");
+        if (mContext != null) {
+
+            int degree = note % 16;
+            double velocity = 2.0 * vel / 127.0;
+            Intent intent = new Intent(ARPONG_EVENT);
+            intent.putExtra(ARPONG_EVENT_TYPE, APRONG_EVENT_SQUARE_ON);
+            intent.putExtra(ARPONG_SQUARE_ON_ID, id);
+            intent.putExtra(ARPONG_SQUARE_ON_DEGREE, degree);
+            intent.putExtra(ARPONG_SQUARE_ON_STEP, step);
+            intent.putExtra(ARPONG_SQUARE_ON_VEL, velocity);
+
+            Log.i(TAG, "sendEventNoteOn degree: " + degree);
+            LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+        }
+
+    }
 }
