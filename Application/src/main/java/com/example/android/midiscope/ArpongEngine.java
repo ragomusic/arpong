@@ -165,13 +165,16 @@ public class ArpongEngine {
 
                     //Get queued notes to turn on and off.
                     for (int i = 0; i< sequences.size(); i++) {
-                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.PATTERN.LOW, i, sequences.get(i).getOriginalNote());
-                        ArpongSequence seq =sequences.get(i);
+                        ArpongSequence seq = sequences.get(i);
                         //turn off previous notes
                         int noteOff = seq.getNextNote();
                         int velOff = seq.getNextVel();
 
                         sendNote(mChannel, noteOff, velOff, false);
+
+                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.PATTERN.LOW, i, sequences.get(i).getOriginalNote());
+                        seq.setNextNote(info.midiNoteNumber);
+                        seq.setNextVelocity(info.velocity);
 
                         sequences.get(i).advance();
                         //turn on next notes
