@@ -185,7 +185,7 @@ public class ArpongEngine {
 
                         sendNote(mChannel, noteOff, velOff, false);
 
-                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.PATTERN.LOW, i, sequences.get(i).getOriginalNote());
+                        NoteInfo info = SequenceManager.getNoteInfoForIndex(SequenceManager.PATTERN.LOW, currentBeat, sequences.get(i).getOriginalNote());
                         seq.setNextNote(info.midiNoteNumber);
                         seq.setNextVelocity(info.velocity);
 
@@ -199,9 +199,7 @@ public class ArpongEngine {
                         //Info for the ui
                         int degree = noteOn % 16;
 
-
-
-                        //Log.i(TAG, String.format(" sequence: %d  play: (%d, %d)",i, note, vel));
+                        Log.i(TAG, String.format(" sequence: %d  play: (%d, %d)",i, noteOn, velOn));
                     }
 
 
