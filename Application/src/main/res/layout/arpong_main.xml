@@ -25,6 +25,12 @@
             android:layout_height="wrap_content"
             android:entries="@array/senders"
             android:popupTheme="@android:style/ThemeOverlay.Material.Light"/>
+        <Spinner
+            android:id="@+id/spinner_receivers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/receivers"
+            android:popupTheme="@android:style/ThemeOverlay.Material.Light"/>
 
     </Toolbar>
 

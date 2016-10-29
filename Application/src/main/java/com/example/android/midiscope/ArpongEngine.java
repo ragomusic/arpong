@@ -2,9 +2,14 @@ package com.example.android.midiscope;
 
 
 import android.animation.ObjectAnimator;
+import android.content.Context;
+import android.media.midi.MidiDeviceInfo;
+import android.media.midi.MidiInputPort;
+import android.media.midi.MidiManager;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class ArpongEngine {
@@ -15,6 +20,7 @@ public class ArpongEngine {
         return ourInstance;
     }
 
+    private int mChannel = 5;
     private float mTempo = 120;
     private float msPerBeat = 500;
     private static final Object mTempoLock = new Object();
@@ -24,7 +30,37 @@ public class ArpongEngine {
 
     private SequencerTask mySequencer = null;
 
+    Context mContext = null;
+    MidiManager mMidiManager = null;
+    MidiInputPort mMidiInput = null;
+
     private ArpongEngine() {
+    }
+    public void initMidiInput(MidiInputPort input) {
+        mMidiInput = input;
+        Log.i(TAG, "initMidiOutput done");
+    }
+
+    private void sendNote(int channel, int note, int vel, boolean on) {
+        Log.i(TAG, String.format(" play: (%d, %d) %s", note, vel, on ? "on" : "off"));
+        if (mMidiInput != null) {
+            byte prefix = on ? (byte)0x90 : (byte)0x80;
+            byte[] buffer = new byte[32];
+            int numBytes = 0;
+          //  int channel = mChannel; // MIDI channels 1-16 are encoded as 0-15.
+            buffer[numBytes++] = (byte) (prefix + (channel - 1)); // note on
+            buffer[numBytes++] = (byte) note; // pitch is middle C
+            buffer[numBytes++] = (byte) vel; // max velocity
+            int offset = 0;
+// post is non-blocking
+            try {
+                mMidiInput.send(buffer, offset, numBytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.i(TAG, "midi input not set");
+        }
     }
 
     public void startNote(int note, int velocity) {
@@ -116,8 +152,8 @@ public class ArpongEngine {
 
                 if (timePrevBeat == 0 || (currTime - timePrevBeat) > msPerBeat) {
                     int activeSequences = sequences.size();
-                    Log.i(TAG, String.format(" [%d] diff: %d  seq: %d", currentBeat,
-                            (currTime - timePrevBeat), activeSequences));
+//                    Log.i(TAG, String.format(" [%d] diff: %d  seq: %d", currentBeat,
+//                            (currTime - timePrevBeat), activeSequences));
                     timePrevBeat = currTime;
                     currentBeat++;
                     if(currentBeat >= maxBeat) {
@@ -126,11 +162,21 @@ public class ArpongEngine {
 
                     //Get queued notes to turn on and off.
                     for (int i = 0; i< sequences.size(); i++) {
-                        int note = sequences.get(i).getNextNote();
-                        int vel = sequences.get(i).getNextVel();
-                        sequences.get(i).advance();
+                        ArpongSequence seq =sequences.get(i);
+                        //turn off previous notes
+                        int noteOff = seq.getNextNote();
+                        int velOff = seq.getNextVel();
 
-                        Log.i(TAG, String.format(" sequence: %d  play: (%d, %d)",i, note, vel));
+                        sendNote(mChannel, noteOff, velOff, false);
+
+                        sequences.get(i).advance();
+                        //turn on next notes
+                        int noteOn = seq.getNextNote();
+                        int velOn = seq.getNextVel();
+                        sendNote(mChannel, noteOn, velOn, true);
+
+
+                        //Log.i(TAG, String.format(" sequence: %d  play: (%d, %d)",i, note, vel));
                     }
 
 
@@ -165,6 +211,10 @@ public class ArpongEngine {
             for (int i = sequences.size()-1; i>=0; i--) {
                 if (sequences.get(i).getOriginalNote() == note ) {
                     //remove this
+                    int noteOff = sequences.get(i).getNextNote();
+                    int velOff = sequences.get(i).getNextVel();
+
+                    sendNote(mChannel, noteOff, velOff, false);
                     sequences.remove(i);
                 }
             }

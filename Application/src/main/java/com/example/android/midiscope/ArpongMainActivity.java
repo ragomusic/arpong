@@ -4,6 +4,7 @@ package com.example.android.midiscope;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.media.midi.MidiDeviceInfo;
+import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
 import android.media.midi.MidiReceiver;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toolbar;
 
 import com.example.android.common.midi.MidiFramer;
+import com.example.android.common.midi.MidiInputPortSelector;
 import com.example.android.common.midi.MidiOutputPortSelector;
 import com.example.android.common.midi.MidiPortWrapper;
 
@@ -32,6 +34,7 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
     private TextView mLog;
     private ScrollView mScroller;
     private MidiOutputPortSelector mLogSenderSelector;
+    private MidiInputPortSelector mLogReceiverSelector;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,11 +54,11 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         MidiManager midiManager = (MidiManager) getSystemService(MIDI_SERVICE);
 
         // Receiver that prints the messages.
-        //MidiReceiver loggingReceiver = new LoggingReceiver(this);
-        MidiReceiver myReceiver = new ArpongMidiReceiver(this);
+        MidiReceiver loggingReceiver = new LoggingReceiver(this);
+        //MidiReceiver myReceiver = new ArpongMidiReceiver(this);
 
         // Receiver that parses raw data into complete messages.
-        MidiFramer connectFramer = new MidiFramer(myReceiver);
+        MidiFramer connectFramer = new MidiFramer(loggingReceiver);
 
         // Setup a menu to select an input source.
         mLogSenderSelector = new MidiOutputPortSelector(midiManager, this, R.id.spinner_senders) {
@@ -75,9 +78,30 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         };
         mLogSenderSelector.getSender().connect(connectFramer);
 
+        mLogReceiverSelector = new MidiInputPortSelector(midiManager, this, R.id.spinner_receivers) {
+            @Override
+            public void onPortSelected(final MidiPortWrapper wrapper) {
+                super.onPortSelected(wrapper);
+                if (wrapper != null) {
+                    mLogLines.clear();
+                    MidiDeviceInfo deviceInfo = wrapper.getDeviceInfo();
+                    if (deviceInfo == null) {
+                        log(getString(R.string.header_text));
+                    } else {
+                        log(MidiPrinter.formatDeviceInfo(deviceInfo));
+                    }
+
+                    MidiInputPort input = (MidiInputPort) mLogReceiverSelector.getReceiver();  //input port!!
+                    ArpongEngine.getInstance().initMidiInput(input);
+                }
+            }
+        };
+
+
         // Tell the virtual device to log its messages here..
         MidiScope.setScopeLogger(this);
 
+//        ArpongEngine.getInstance().initMidiOutput(getApplicationContext());
         ArpongEngine.getInstance().setTempo(120);
         ArpongEngine.getInstance().start(); //start ArpongEngine
     }
