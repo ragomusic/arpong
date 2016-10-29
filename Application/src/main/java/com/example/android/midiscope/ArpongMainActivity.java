@@ -44,6 +44,7 @@ import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 
 public class ArpongMainActivity extends Activity implements ScopeLogger {
+    public static final String TAG = "ArpongMainActivity";
 
     private static final int MAX_LINES = 100;
 
@@ -74,7 +75,7 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         mScroller = (ScrollView) findViewById(R.id.scroll);
 
         // Setup MIDI
-        MidiManager midiManager = (MidiManager) getSystemService(MIDI_SERVICE);
+        final MidiManager midiManager = (MidiManager) getSystemService(MIDI_SERVICE);
 
         // Receiver that prints the messages.
         MidiReceiver loggingReceiver = new LoggingReceiver(this);
@@ -101,24 +102,45 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         };
         mLogSenderSelector.getSender().connect(connectFramer);
 
-        mLogReceiverSelector = new MidiInputPortSelector(midiManager, this, R.id.spinner_receivers) {
-            @Override
-            public void onPortSelected(final MidiPortWrapper wrapper) {
-                super.onPortSelected(wrapper);
-                if (wrapper != null) {
-                    mLogLines.clear();
-                    MidiDeviceInfo deviceInfo = wrapper.getDeviceInfo();
-                    if (deviceInfo == null) {
-                        log(getString(R.string.header_text));
-                    } else {
-                        log(MidiPrinter.formatDeviceInfo(deviceInfo));
-                    }
+        mLogReceiverSelector = new MidiInputPortSelector(midiManager, this, R.id.spinner_receivers);
 
-                    MidiInputPort input = (MidiInputPort) mLogReceiverSelector.getReceiver();  //input port!!
-                    ArpongEngine.getInstance().initMidiInput(input);
+        MidiReceiver proxyReceiver = new MidiReceiver() {
+            @Override
+            public void onSend(byte[] bytes, int i, int i1, long l) throws IOException {
+                MidiReceiver r = mLogReceiverSelector.getReceiver();
+                if (r != null) {
+                    r.send(bytes, i , i1, l);
                 }
             }
         };
+
+        ArpongEngine.getInstance().initMidiInput(proxyReceiver);
+//        {
+//            @Override
+//            public void onPortSelected(final MidiPortWrapper wrapper) {
+//                super.onPortSelected(wrapper);
+//                if (wrapper != null) {
+//                    mLogLines.clear();
+//                    MidiDeviceInfo deviceInfo = wrapper.getDeviceInfo();
+//                    if (deviceInfo == null) {
+//                        log(getString(R.string.header_text));
+//                    } else {
+//                        log(MidiPrinter.formatDeviceInfo(deviceInfo));
+//                    }
+//
+//                    int index = wrapper.getPortIndex();
+//                    Log.i(TAG, "input port selected index: " + index);
+////                    wrapper.getDeviceInfo()
+////
+////                    MidiInputPort inputPort = device.openInputPort(index);
+//                    MidiReceiver midiReceiver = mLogReceiverSelector.getReceiver();
+//                    Log.i(TAG, " receiver: " + midiReceiver);
+//
+//                    MidiInputPort input = (MidiInputPort) mLogReceiverSelector.getReceiver();  //input port!!
+//                    ArpongEngine.getInstance().initMidiInput(input);
+//                }
+//            }
+//        };
 
 
         // Tell the virtual device to log its messages here..
@@ -164,6 +186,7 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
     @Override
     public void onDestroy() {
         mLogSenderSelector.onClose();
+        mLogReceiverSelector.onClose();
         // The scope will live on as a service so we need to tell it to stop
         // writing log messages to this Activity.
         MidiScope.setScopeLogger(null);

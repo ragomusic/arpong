@@ -6,6 +6,7 @@ import android.content.Context;
 import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiInputPort;
 import android.media.midi.MidiManager;
+import android.media.midi.MidiReceiver;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -32,18 +33,18 @@ public class ArpongEngine {
 
     Context mContext = null;
     MidiManager mMidiManager = null;
-    MidiInputPort mMidiInput = null;
+    MidiReceiver mMidiReceiver = null;
 
     private ArpongEngine() {
     }
-    public void initMidiInput(MidiInputPort input) {
-        mMidiInput = input;
-        Log.i(TAG, "initMidiOutput done");
+    public void initMidiInput(MidiReceiver midiReceiver) {
+        mMidiReceiver = midiReceiver;
+        Log.i(TAG, "mMidiReceiver done " + mMidiReceiver);
     }
 
     private void sendNote(int channel, int note, int vel, boolean on) {
         Log.i(TAG, String.format(" play: (%d, %d) %s", note, vel, on ? "on" : "off"));
-        if (mMidiInput != null) {
+        if (mMidiReceiver != null) {
             byte prefix = on ? (byte)0x90 : (byte)0x80;
             byte[] buffer = new byte[32];
             int numBytes = 0;
@@ -54,7 +55,7 @@ public class ArpongEngine {
             int offset = 0;
 // post is non-blocking
             try {
-                mMidiInput.send(buffer, offset, numBytes);
+                mMidiReceiver.send(buffer, offset, numBytes);
             } catch (IOException e) {
                 e.printStackTrace();
             }
