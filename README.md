@@ -1,20 +1,29 @@
 
-Android MidiScope Sample
-===================================
+Android Arpong MIDI Arpeggiator/Visualizer
+==========================================
 
-Sample demonstrating how to use the MIDI API to receive and process MIDI signals coming from an
-attached device.
+A simple MIDI arpeggiator that takes MIDI in from an attached controller or virtual MIDI device and generates rhythmic arpeggios (in the pentatonic scale), along with a step-sequencer-style visualization.
 
 Introduction
 ------------
 
-The Android MIDI API ([android.media.midi][1]) allows developers to connect a MIDI device to Android
-and process MIDI signals coming from it. This sample demonstrates some basic features of the MIDI
-API, such as enumeration of currently available devices (Information includes name, vendor,
-capabilities, etc), notification when MIDI devices are plugged in or unplugged, and receiving MIDI
-signals. This sample simply shows all the received MIDI signals to the screen log and does not play
-any sound for them.
-[1]: https://developer.android.com/reference/android/media/midi/package-summary.html
+This project makes use of the Android MIDI API ([android.media.midi][1]) to implement some basic MIDI I/O features. A scale/harmony is selected when the program starts. When a key is pressed, the program finds the nearest scale degree and starts generating a pentatonic arpeggio using a number of predefined arpeggio patterns. The generated notes are sent out as a stream of MIDI note on/off messages that can be used to trigger a synthesizer or sampler (or other MIDI instrument).
+
+The generated arpeggiated notes are visualized on a grid of 8 steps by 16 scale degrees, similar to a piano roll (but with the concept of pitch abstracted into scale/harmony degrees). Notes that are triggered are lit up red, and collisions between multiple voices trying to play the same note (or with arpeggios that cross over the same scale degrees) are lit up blue.
+
+Arpeggio patterns are selected based on the velocity of the input note.
+
+The visualization UI is implemented using WebViewAPI.
+
+This project was created during Google's 2016 MIDI Hackathon on-site at the Googleplex in Mountain View, CA.
+
+Hackathon project members:
+- Yuval Adler
+- Ricardo Garcia
+- Brett Gildersleeve
+- Jingwei Guo
+- Toshiyuki Hayashi
+- Hakan Lindh
 
 Pre-requisites
 --------------
@@ -40,11 +49,7 @@ Support
 - Google+ Community: https://plus.google.com/communities/105153134372062985968
 - Stack Overflow: http://stackoverflow.com/questions/tagged/android
 
-If you've found an error in this sample, please file an issue:
-https://github.com/googlesamples/android-MidiScope
-
-Patches are encouraged, and may be submitted by forking this project and
-submitting a pull request through GitHub. Please see CONTRIBUTING.md for more details.
+Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub. Please see CONTRIBUTING.md for more details.
 
 License
 -------
