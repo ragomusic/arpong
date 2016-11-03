@@ -58,6 +58,8 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
     private MidiOutputPortSelector mLogSenderSelector;
 
     private MidiInputPortSelector mLogReceiverSelector;
+
+    private static final boolean LOAD_HTML_NATIVELY = true;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -140,11 +142,16 @@ public class ArpongMainActivity extends Activity implements ScopeLogger {
         w.getSettings().setDisplayZoomControls(false);
         w.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         w.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+        w.getSettings().setDomStorageEnabled(true);
 
         w.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         w.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-        w.loadUrl("http://sainome.com/arpong_webview/src/index_noseq.html");
+        if (LOAD_HTML_NATIVELY) {
+            w.loadUrl("file:///android_asset/index_noseq.html");
+        } else {
+            w.loadUrl("http://sainome.com/arpong_webview/src/index_noseq.html");
+        }
         w.addJavascriptInterface(new JsInterface(), "AndroidApp");
         w.loadUrl("javascript:changeBackgroundColor()");
 
